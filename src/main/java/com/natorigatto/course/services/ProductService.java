@@ -24,25 +24,48 @@ public class ProductService {
 	private CategoryRepository categoryRepository;
 
 	public List<Product> findAll() {
+		
 		return productRepository.findAll();
 	}
 
 	public Product findById(Long id) {
-		Optional<Product> obj = productRepository.findById(id);
-		return obj.get();
+		
+		Optional<Product> product = productRepository.findById(id);
+		return product.orElseThrow(() -> new ResourceNotFoundException(id));
 	}
-	
-	public Product insert(Product product, Set<Long> categoriesId) {
-		
-		// Busca em uma coleção de Categorias e retorna uma excessão se não encontrar o ID
-		Set<Category> categories = categoriesId.stream()
-				.map(id -> categoryRepository.findById(id)
-						.orElseThrow(() -> new ResourceNotFoundException(categoriesId)))
+
+	public Product insert(Product product) {
+
+		// Busca uma(ou mais) Categoria(s) e retorna uma excessão se não encontrá-la(s)
+		Set<Category> categories = product.getCategories().stream()
+				.map(category -> categoryRepository
+						.findById(category.getId()).orElseThrow(() -> new ResourceNotFoundException(category.getId())))
 				.collect(Collectors.toSet());
-					
+
+		// Associa a(s) Categoria(s) encontrada(s)
 		product.setCategories(categories);
-		
+
 		return productRepository.save(product);
+
+	}
+
+	public Product update(Long id, Product updatedProduct) {
+
+		Product existingProduct = productRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(id));
+
+		existingProduct.setName(updatedProduct.getName());
+		existingProduct.setDescription(updatedProduct.getDescription());
+		existingProduct.setPrice(updatedProduct.getPrice());
+		existingProduct.setImgUrl(updatedProduct.getImgUrl());
+
+		Set<Category> categories = updatedProduct.getCategories().stream()
+				.map(category -> categoryRepository
+						.findById(category.getId()).orElseThrow(() -> new ResourceNotFoundException(id)))
+				.collect(Collectors.toSet());
+
+		existingProduct.setCategories(categories);
+
+		return productRepository.save(existingProduct);
 	}
 
 }
