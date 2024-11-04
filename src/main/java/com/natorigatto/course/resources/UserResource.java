@@ -1,9 +1,9 @@
 package com.natorigatto.course.resources;
 
+import java.net.URI;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.natorigatto.course.entities.User;
 import com.natorigatto.course.services.UserService;
@@ -28,28 +29,35 @@ public class UserResource {
 	public ResponseEntity<List<User>> findAll() {
 
 		List<User> users = userService.findAll();
-		return new ResponseEntity<>(users, HttpStatus.OK);
+		return ResponseEntity.ok().body(users);
 	}
 
 	@GetMapping(value = "/{id}")
 	public ResponseEntity<User> findById(@PathVariable Long id) {
 
 		User user = userService.findById(id);
-		return new ResponseEntity<>(user, HttpStatus.OK);
+		return ResponseEntity.ok().body(user);
 	}
 
 	@PostMapping
 	public ResponseEntity<User> insert(@RequestBody User user) {
 
 		User savedUser = userService.insert(user);
-		return new ResponseEntity<>(savedUser, HttpStatus.CREATED);
+		
+		URI location = ServletUriComponentsBuilder
+				.fromCurrentRequest()
+				.path("{id}")
+				.buildAndExpand(user.getId())
+				.toUri();
+		
+		return ResponseEntity.created(location).body(savedUser);
 	}
 
 	@PutMapping(value = "/{id}")
 	public ResponseEntity<User> update(@PathVariable Long id, @RequestBody User updatedUser) {
 
 		User existingUser = userService.update(id, updatedUser);
-		return new ResponseEntity<>(existingUser, HttpStatus.OK);
+		return ResponseEntity.ok().body(existingUser);
 	}
 	
 	@DeleteMapping(value = "/{id}")

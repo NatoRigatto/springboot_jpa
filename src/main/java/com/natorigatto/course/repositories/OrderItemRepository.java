@@ -6,7 +6,5 @@ import com.natorigatto.course.entities.OrderItem;
 import com.natorigatto.course.entities.pk.OrderItemPK;
 
 public interface OrderItemRepository extends JpaRepository<OrderItem, OrderItemPK> {
-	
-	
 
 }

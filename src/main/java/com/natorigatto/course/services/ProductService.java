@@ -12,6 +12,7 @@ import com.natorigatto.course.entities.Category;
 import com.natorigatto.course.entities.Product;
 import com.natorigatto.course.repositories.CategoryRepository;
 import com.natorigatto.course.repositories.ProductRepository;
+import com.natorigatto.course.services.exceptions.DataIntegrityViolationException;
 import com.natorigatto.course.services.exceptions.ResourceNotFoundException;
 
 @Service
@@ -66,6 +67,19 @@ public class ProductService {
 		existingProduct.setCategories(categories);
 
 		return productRepository.save(existingProduct);
+	}
+	
+	public void delete(Long id) {
+		
+		Product product = productRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException(id));
+		
+		product.getCategories().clear();
+		
+		if(!product.getOrders().isEmpty()) {
+			throw new DataIntegrityViolationException("Cannot delete Product as it is associated with OrderItems.");
+		}
+		
+		productRepository.deleteById(id);
 	}
 
 }
